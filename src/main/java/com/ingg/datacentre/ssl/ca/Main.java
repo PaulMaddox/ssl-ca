@@ -4,8 +4,6 @@ import org.bouncycastle.asn1.x509.KeyPurposeId;
 import org.bouncycastle.openssl.PEMWriter;
 
 import java.io.FileWriter;
-import java.security.KeyPair;
-import java.security.cert.X509Certificate;
 import java.util.logging.Logger;
 
 public class Main {
@@ -26,28 +24,7 @@ public class Main {
         String purpose = args[0];
         String cn = args[1];
 
-        CertificateAuthority ca = new CertificateAuthority();
-
-        // Check to see if there is a valid CA key - or generate one if not
-        KeyPair rootKey = CertificateAuthority.loadKeyPairFromFile(CA_KEY_FILE);
-        if(rootKey == null){
-            System.out.println("Generating & saving new CA key: " + CA_KEY_FILE);
-            rootKey = CertificateAuthority.generateKeyPairAndSaveToFile(CA_KEY_FILE);
-        } else {
-            System.out.println("Loaded CA key from file: " + CA_KEY_FILE);
-        }
-        ca.setKey(rootKey);
-
-        // ... and the same for a CA certificate
-        X509Certificate rootCertificate  = CertificateAuthority.loadCertificateFromFile(CA_CERTIFICATE_FILE);
-        if(rootCertificate == null){
-            System.out.println("Generating & saving new CA certificate: " + CA_CERTIFICATE_FILE);
-            rootCertificate = CertificateAuthority.generateCACertificateAndSaveToFile(CA_CERTIFICATE_FILE, rootKey);
-        } else {
-            System.out.println("Loaded CA certificate from file: " + CA_CERTIFICATE_FILE);
-        }
-        System.out.println("CA: " + rootCertificate.getSubjectDN());
-        ca.setCertificate(rootCertificate);
+        CertificateAuthority ca = new CertificateAuthority(CA_CERTIFICATE_FILE, CA_KEY_FILE);
 
         // Now generate the certificate
         if(purpose.equals("server")){
@@ -80,8 +57,6 @@ public class Main {
             certWriter.close();
 
         }
-
-
 
     }
 

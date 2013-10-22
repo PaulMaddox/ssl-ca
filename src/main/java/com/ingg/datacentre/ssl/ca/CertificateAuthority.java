@@ -43,6 +43,54 @@ public class CertificateAuthority {
     }
 
     /**
+     * Initiates a new certificate signing authority
+     * Attempts to load a CA cert & key from filenames provided otherwise generates new ones
+     * @param caCertFile A valid PEM encoded X.509 CA certificate
+     * @param caKeyFile A valid PEM encoded RSA private key
+     */
+    public CertificateAuthority(String caCertFile, String caKeyFile) {
+
+        // Check to see if there is a valid CA key - or generate one if not
+
+        try {
+            this.caKeyPair = CertificateAuthority.loadKeyPairFromFile(caKeyFile);
+        } catch (IOException e){}
+
+        if(this.caKeyPair == null){
+            System.out.println("Generating & saving new CA key: " + caKeyFile);
+            try {
+                this.caKeyPair = CertificateAuthority.generateKeyPairAndSaveToFile(caKeyFile);
+            } catch (Exception e){
+                System.out.println("Could not generate new CA key: " + e.getMessage());
+                return;
+            }
+        } else {
+            System.out.println("Loaded existing CA key: " + caKeyFile);
+        }
+
+
+        // Check to see if there is a valid CA certificate - or generate one if not
+        try {
+            this.caCertificate = CertificateAuthority.loadCertificateFromFile(caCertFile);
+        } catch (IOException e){}
+
+        if(this.caCertificate == null){
+            System.out.println("Generating & saving new CA certificate: " + caCertFile);
+            try {
+                this.caCertificate = CertificateAuthority.generateCACertificateAndSaveToFile(caCertFile, caKeyPair);
+            } catch (Exception e){
+                System.out.println("Could not generate new CA certificate: " + e.getMessage());
+                return;
+            }
+        } else {
+            System.out.println("Loaded existing CA certificate: " + caCertFile);
+        }
+
+        System.out.println("CA: " + caCertificate.getSubjectDN());
+
+    }
+
+    /**
      * Generates an RSA public/private KeyPair
      * @return Generated KeyPair
      * @throws NoSuchProviderException
@@ -66,6 +114,16 @@ public class CertificateAuthority {
                 "CN=" + cn), pair.getPublic(), null, pair.getPrivate());
     }
 
+    /**
+     * Generates a v1 certificate - suitable for a CA with no usage restrictions
+     * @param pair A public/private KeyPair to use for signing the CA certificate
+     * @return A valid v1 X.509 certificate
+     * @throws InvalidKeyException
+     * @throws NoSuchProviderException
+     * @throws SignatureException
+     * @throws NoSuchAlgorithmException
+     * @throws CertificateEncodingException
+     */
     public static X509Certificate generateV1Certificate(KeyPair pair)
             throws InvalidKeyException, NoSuchProviderException, SignatureException,
             NoSuchAlgorithmException, CertificateEncodingException {
@@ -88,6 +146,7 @@ public class CertificateAuthority {
      * Generates an SSL certificate
      * @param cn Common name for certificate (eg: blah.mydomain.com)
      * @param days Number of days the certificate should be valid for
+     * @param purposeId A {@link KeyPurposeId} that defines what the certificate can be used for
      * @throws Exception
      */
     public void issueCertificate(String cn, int days, KeyPurposeId purposeId) throws Exception {
@@ -142,22 +201,6 @@ public class CertificateAuthority {
 
         this.issuedCertificate = certGen.generate(caKeyPair.getPrivate());
 
-    }
-
-    public void setKey(KeyPair keyPair){
-        this.caKeyPair = keyPair;
-    }
-
-    public KeyPair getKey(){
-        return caKeyPair;
-    }
-
-    public void setCertificate(X509Certificate certificate){
-        this.caCertificate = certificate;
-    }
-
-    public X509Certificate getCertificate(){
-        return caCertificate;
     }
 
     public KeyPair getIssuedKeyPair() {
@@ -231,7 +274,7 @@ public class CertificateAuthority {
     /**
      * Generates a new RSA KeyPair and saves the private key in PEM format to the specified filename
      * @param filename
-     * @return The generated RSA KeyPair
+     * @return The generated RSA {@link KeyPair}
      * @throws NoSuchProviderException
      * @throws NoSuchAlgorithmException
      * @throws IOException
@@ -251,8 +294,8 @@ public class CertificateAuthority {
 
     /**
      * Generates a valid CA certificate and saves it in PEM format to the specified filename
-     * @param filename
-     * @param keyPair
+     * @param filename The filename to write out a CA certificate in PEM format
+     * @param keyPair A private/public {@link KeyPair} to sign the CA certificate with
      * @return The generated certificate
      * @throws NoSuchAlgorithmException
      * @throws CertificateEncodingException
