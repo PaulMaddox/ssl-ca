@@ -18,7 +18,13 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
 
-        String cn = args[0];
+        if(args.length != 2){
+            showUsage();
+            return;
+        }
+
+        String purpose = args[0];
+        String cn = args[1];
 
         CertificateAuthority ca = new CertificateAuthority();
 
@@ -43,17 +49,44 @@ public class Main {
         System.out.println("CA: " + rootCertificate.getSubjectDN());
         ca.setCertificate(rootCertificate);
 
-        // Now generate the client authentication certificate
-        System.out.println("Generating client authentication certificate..." );
-        ca.issueCertificate(cn, 365, KeyPurposeId.id_kp_clientAuth);
+        // Now generate the certificate
+        if(purpose.equals("server")){
 
-        // Write out the client certificate with key concatenated below in PEM format
-        // ready for Apache SSLProxyMachineCertificateFile entry
-        System.out.println("Wrote client certificate & key: /tmp/" + cn + ".crt");
-        PEMWriter certWriter = new PEMWriter(new FileWriter("/tmp/" + cn + ".crt"));
-        certWriter.writeObject(ca.getIssuedCertificate());
-        certWriter.writeObject(ca.getIssuedKeyPair().getPrivate());
-        certWriter.close();
+            System.out.println("Generating server authentication certificate..." );
+            ca.issueCertificate(cn, 365, KeyPurposeId.id_kp_serverAuth);
 
+            // Write out separate key & certificate for server certs
+            System.out.println("Wrote server certificate: /tmp/" + cn + ".crt");
+            PEMWriter certWriter = new PEMWriter(new FileWriter("/tmp/" + cn + ".crt"));
+            certWriter.writeObject(ca.getIssuedCertificate());
+            certWriter.close();
+
+            System.out.println("Wrote server certificate key: /tmp/" + cn + ".key");
+            PEMWriter keyWriter = new PEMWriter(new FileWriter("/tmp/" + cn + ".key"));
+            keyWriter.writeObject(ca.getIssuedKeyPair().getPrivate());
+            keyWriter.close();
+
+        } else {
+
+            System.out.println("Generating client authentication certificate..." );
+            ca.issueCertificate(cn, 365, KeyPurposeId.id_kp_clientAuth);
+
+            // Write out the client certificate with key concatenated below in PEM format
+            // ready for Apache SSLProxyMachineCertificateFile entry
+            System.out.println("Wrote client certificate & key: /tmp/" + cn + ".crt");
+            PEMWriter certWriter = new PEMWriter(new FileWriter("/tmp/" + cn + ".crt"));
+            certWriter.writeObject(ca.getIssuedCertificate());
+            certWriter.writeObject(ca.getIssuedKeyPair().getPrivate());
+            certWriter.close();
+
+        }
+
+
+
+    }
+
+    private static void showUsage() {
+        System.out.println("Usage:");
+        System.out.println("java -jar ingg-ssl-ca.jar <client|server> <common name>");
     }
 }
