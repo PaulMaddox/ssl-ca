@@ -1,4 +1,4 @@
-package com.ingg.datacentre.ssl.ca;
+package com.example.ssl.ca;
 
 import org.bouncycastle.asn1.x509.KeyPurposeId;
 import org.bouncycastle.openssl.PEMWriter;
@@ -33,13 +33,13 @@ public class Main {
             ca.issueCertificate(cn, 365, KeyPurposeId.id_kp_serverAuth);
 
             // Write out separate key & certificate for server certs
-            System.out.println("Wrote server certificate: /tmp/" + cn + ".crt");
-            PEMWriter certWriter = new PEMWriter(new FileWriter("/tmp/" + cn + ".crt"));
+            System.out.println("Wrote server certificate: " + CA_DIRECTORY + "/" + cn + ".crt");
+            PEMWriter certWriter = new PEMWriter(new FileWriter(CA_DIRECTORY + "/" + cn + ".crt"));
             certWriter.writeObject(ca.getIssuedCertificate());
             certWriter.close();
 
-            System.out.println("Wrote server certificate key: /tmp/" + cn + ".key");
-            PEMWriter keyWriter = new PEMWriter(new FileWriter("/tmp/" + cn + ".key"));
+            System.out.println("Wrote server certificate key: " + CA_DIRECTORY + "/" + cn + ".key");
+            PEMWriter keyWriter = new PEMWriter(new FileWriter(CA_DIRECTORY + "/" + cn + ".key"));
             keyWriter.writeObject(ca.getIssuedKeyPair().getPrivate());
             keyWriter.close();
 
@@ -50,8 +50,8 @@ public class Main {
 
             // Write out the client certificate with key concatenated below in PEM format
             // ready for Apache SSLProxyMachineCertificateFile entry
-            System.out.println("Wrote client certificate & key: /tmp/" + cn + ".crt");
-            PEMWriter certWriter = new PEMWriter(new FileWriter("/tmp/" + cn + ".crt"));
+            System.out.println("Wrote client certificate & key: " + CA_DIRECTORY + "/" + cn + ".crt");
+            PEMWriter certWriter = new PEMWriter(new FileWriter(CA_DIRECTORY + "/" + cn + ".crt"));
             certWriter.writeObject(ca.getIssuedCertificate());
             certWriter.writeObject(ca.getIssuedKeyPair().getPrivate());
             certWriter.close();
@@ -61,7 +61,6 @@ public class Main {
     }
 
     private static void showUsage() {
-        System.out.println("Usage:");
-        System.out.println("java -jar ingg-ssl-ca.jar <client|server> <common name>");
+        System.out.println("Usage: java -jar ssl-ca.jar <client|server> <common name>");
     }
 }

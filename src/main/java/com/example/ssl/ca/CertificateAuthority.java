@@ -1,4 +1,4 @@
-package com.ingg.datacentre.ssl.ca;
+package com.example.ssl.ca;
 
 import org.bouncycastle.asn1.ASN1Set;
 import org.bouncycastle.asn1.DERObjectIdentifier;
@@ -24,7 +24,7 @@ import java.util.logging.Logger;
 
 /**
  * Generate and sign X509 SSL certificates
- * @author Paul Maddox <paul.maddox@ingg.com>
+ * @author Paul Maddox <paul.maddox@gmail.com>
  */
 
 public class CertificateAuthority {
@@ -131,7 +131,7 @@ public class CertificateAuthority {
         X509V1CertificateGenerator certGen = new X509V1CertificateGenerator();
 
         certGen.setSerialNumber(BigInteger.valueOf(System.currentTimeMillis()));
-        certGen.setIssuerDN(new X500Principal("CN=INGG Certificate Authority"));
+        certGen.setIssuerDN(new X500Principal("CN=Certificate Authority"));
         certGen.setNotBefore(new Date(System.currentTimeMillis() - 10000));
         certGen.setNotAfter(new Date(System.currentTimeMillis() + (1000L * 60 * 60 * 24 * 365 * 50))); // CA valid for 50yrs
         certGen.setSubjectDN(new X500Principal("CN=INGG Certificate Authority"));
@@ -165,18 +165,10 @@ public class CertificateAuthority {
         certGen.setPublicKey(request.getPublicKey("BC"));
         certGen.setSignatureAlgorithm("SHA256WithRSAEncryption");
 
-        certGen.addExtension(X509Extensions.AuthorityKeyIdentifier, false,
-                new AuthorityKeyIdentifierStructure(caCertificate));
-
-        certGen.addExtension(X509Extensions.SubjectKeyIdentifier,
-
-                false, new SubjectKeyIdentifierStructure(request.getPublicKey("BC")));
-
+        certGen.addExtension(X509Extensions.AuthorityKeyIdentifier, false, new AuthorityKeyIdentifierStructure(caCertificate));
+        certGen.addExtension(X509Extensions.SubjectKeyIdentifier, false, new SubjectKeyIdentifierStructure(request.getPublicKey("BC")));
         certGen.addExtension(X509Extensions.BasicConstraints, true, new BasicConstraints(false));
-
-        certGen.addExtension(X509Extensions.KeyUsage, true, new KeyUsage(KeyUsage.digitalSignature
-                | KeyUsage.keyEncipherment ));
-
+        certGen.addExtension(X509Extensions.KeyUsage, true, new KeyUsage(KeyUsage.digitalSignature | KeyUsage.keyEncipherment ));
         certGen.addExtension(X509Extensions.ExtendedKeyUsage, true, new ExtendedKeyUsage(purposeId));
 
         ASN1Set attributes = request.getCertificationRequestInfo().getAttributes();
@@ -273,7 +265,7 @@ public class CertificateAuthority {
 
     /**
      * Generates a new RSA KeyPair and saves the private key in PEM format to the specified filename
-     * @param filename
+     * @param filename The filename to write out a RSA private key in PEM format
      * @return The generated RSA {@link KeyPair}
      * @throws NoSuchProviderException
      * @throws NoSuchAlgorithmException
