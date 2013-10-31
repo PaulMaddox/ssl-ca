@@ -134,7 +134,7 @@ public class CertificateAuthority {
         certGen.setIssuerDN(new X500Principal("CN=Certificate Authority"));
         certGen.setNotBefore(new Date(System.currentTimeMillis() - 10000));
         certGen.setNotAfter(new Date(System.currentTimeMillis() + (1000L * 60 * 60 * 24 * 365 * 50))); // CA valid for 50yrs
-        certGen.setSubjectDN(new X500Principal("CN=INGG Certificate Authority"));
+        certGen.setSubjectDN(new X500Principal("CN=Certificate Authority"));
         certGen.setPublicKey(pair.getPublic());
         certGen.setSignatureAlgorithm("SHA256WithRSAEncryption");
 
